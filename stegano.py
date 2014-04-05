@@ -56,7 +56,6 @@ def usage():
 
 if __name__ == '__main__':
     # is there a correct amount of parameters ?
-    print len(sys.argv)
     if len(sys.argv) != 3 and len(sys.argv) != 4:
         usage()
     # Are the parameters good ?
