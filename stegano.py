@@ -1,3 +1,4 @@
+#--*-- coding: utf-8 --*--
 from PIL import Image
 import sys
 
@@ -54,6 +55,11 @@ def usage():
     print("\t python stegano.py decode <file containing the message>")
     sys.exit(1)
 
+def print_error(msg):
+    print("###\nERROR\n###")
+    print(msg)
+    sys.exit(1)
+
 if __name__ == '__main__':
     # is there a correct amount of parameters ?
     if len(sys.argv) != 3 and len(sys.argv) != 4:
@@ -63,16 +69,23 @@ if __name__ == '__main__':
         usage()
     if len(sys.argv) == 4 and sys.argv[1] != "encode":
         usage()
+
+    #encoding the message in the image
     if sys.argv[1] == 'encode':
+        print("Encoding the message ...")
         original_pict = sys.argv[2]
         values = original_pict.split('.')
         encoded_pict = "{0}-{1}.{2}".format(values[0],'encoded',values[1])
         img = Image.open(original_pict)
         secret_message = sys.argv[3]
         img_encoded = encode_image(img, secret_message)
-        img_encoded.save(encoded_pict)
-
+        if not img_encoded: 
+            print_error("the message can´t have more than 255 characters")
+        img_encoded.save(encoded_pict)  
+        print ("the message is successfully encoded in {} !".format(encoded_pict))
+    # take the message from the picture
     if sys.argv[1] == 'decode':
+        print("Decoding ...")
         encoded_pict = sys.argv[2]
         img = Image.open(encoded_pict)
         print (decode_image(img))
