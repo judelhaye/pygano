@@ -1,0 +1,93 @@
+#!/usr/bin/env python3
+# coding: utf-8
+
+import sys
+import argparse
+
+from PIL import Image
+
+def encode_image(file, text):
+    """
+    Use the red value to store a text into the image.
+    Limited to 255 caracter as it stores an index in the first pixel.
+    """
+
+    if len(text) > 255 :
+        print("Cannot accept a text longer than 255 charaters")
+        exit(1)
+
+    # add file verification
+    
+    encoded = file.copy()
+    width, height = file.size
+    index = 0 
+    for row in range(height):
+        for col in range(width):
+            r,g,b,a = file.getpixel((col, row))
+            if row == 0 and col == 0 and index == 0:
+                asc = len(text)
+            elif index > 0 and index <= len(text):
+                c = text[index-1]
+                asc = ord(c)
+            else:
+                asc = r
+            encoded.putpixel((col,row), (asc, g, b, a))
+            index +=1
+    return encoded
+
+
+def decode_image(img):
+    """
+    Read the pixels to retrieve the text
+    """
+    # add file verification
+    
+    width, height = img.size
+    msg = ""
+    index = 0
+    for row in range(height):
+        for col in range(width):
+            r,g,b,a = img.getpixel((col, row))
+            if row == 0 and col == 0 :
+                msg_lenght = r
+            elif index <= msg_lenght:
+                msg += chr(r)
+            index += 1
+    return msg
+
+
+def encode_wrapper(img, txt):
+    original = img
+    filename = original.split('.')
+    encoded = "{0}-encoded.{1}".format(filename[0], filename[1])
+    img = Image.open(original)
+    encoded_img = encode_image(img, txt)
+    encoded_img.save(encoded)
+    print("msg encoded in {}.".format(encoded))
+
+def decode_wrapper(img):
+    encoded = img
+    img = Image.open(encoded)
+    print(decode_image(img))
+
+def main(argv):
+    parser = argparse.ArgumentParser(description='Hide text in picture')
+    group = parser.add_mutually_exclusive_group()
+    group.add_argument('-e', '--encode', action="store_true")
+    group.add_argument('-d', '--decode', action="store_true")
+    parser.add_argument("file", help="file to process")
+    parser.add_argument("text", nargs='?', help="text to hide")
+
+    args = parser.parse_args()
+
+    if args.encode:
+        encode_wrapper(args.file, args.text)
+    elif args.decode:
+        decode_wrapper(args.file)
+    else:
+        parser.print_help()
+
+
+if __name__ == "__main__":
+    main(sys.argv)
+
